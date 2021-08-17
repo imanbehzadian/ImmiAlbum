@@ -24,7 +24,7 @@ from os import path
 #sys.path.append('/Users/imanbehzadian/Documents/Python/Google photos/ImmiAlbum/')
 
 
-# In[4]:
+# In[3]:
 
 
 from math  import ceil
@@ -36,13 +36,15 @@ import PJsonConverter
 import slidePopulator as SP
 
 
-# In[5]:
+# In[4]:
 
 
 get_ipython().system('pip freeze > requirement.txt')
 
+#!pip intalled -r requirement.txt   # to use the requirement file for pip
 
-# In[6]:
+
+# In[8]:
 
 
 
@@ -54,33 +56,33 @@ def main():
     """
 
     
-    global google_slides , google_photos, PRESENTATION_ID ,PAGE_ID
     SCOPES = ['https://www.googleapis.com/auth/presentations','https://www.googleapis.com/auth/photoslibrary.readonly']
     PRESENTATION_ID = '1YC3cDTJ0T2n0CYXKvtNTCccblIDkwUVjP28z4YMQWyU'
     album_title = 'Naghiman'
         
     creds = APIc.creds_gen(SCOPES)
-    google_slides, google_photos , presentation, PAGE_ID ,ALBUM_ID =  APIc.connection_builder(creds,PRESENTATION_ID,album_title)
+    service = APIc.APIconnection(creds,PRESENTATION_ID,album_title) 
+    service.connection_refresh()
     
     request_body = {
-        'albumId': ALBUM_ID,
+        'albumId': service.ALBUM_ID,
         'pageSize': 100
         }
 
 
-    df_search_result = GP.response_media_items_by_filter(google_photos,request_body)
-    photo_desc =  df_search_result[df_search_result['description'].isna() == False].head(10)
+    df_search_result = GP.response_media_items_by_filter(service.google_photos,request_body)
+    photo_desc =  df_search_result[df_search_result['description'].isna() == False].head(20)
     x,_ = photo_desc.shape
     page_count = ceil(x/4)
     photo_sets = array_split(photo_desc,page_count)
-    SP.Duplicator(google_slides,PRESENTATION_ID,PAGE_ID,page_count)
+    SP.Duplicator(service.google_slides,service.PRESENTATION_ID,service.PAGE_ID,page_count)
 
     for i in range(page_count):
-        SP.Replacer(google_slides,PRESENTATION_ID,photo_sets[i],i+2)
+        SP.Replacer(service.google_slides,service.PRESENTATION_ID,photo_sets[i],i+2)
     return None
 
 
-# In[7]:
+# In[9]:
 
 
 if __name__ == '__main__':
